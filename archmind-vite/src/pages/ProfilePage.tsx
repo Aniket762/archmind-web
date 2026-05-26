@@ -14,8 +14,8 @@ import {
 } from 'recharts';
 import { useAppSelector } from '@/hooks/redux';
 import { selectAuth }     from '@/store';
-import { ScoreCircle }    from '@/components/common/ScoreCircle';
-import { DifficultyBadge } from '@/components/common/DifficultyBadge';
+import { ScoreCircle }    from '@/component/common/ScoreCircle';
+import { DifficultyBadge } from '@/component/common/DifficultyBadge';
 import {
   mockDashboardStats, mockSubmissions, mockSkillRadar, mockSubmissionTrend,
 } from '@/mocks/data';
