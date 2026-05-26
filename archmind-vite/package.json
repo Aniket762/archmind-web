@@ -1,5 +1,5 @@
 {
-  "name": "archmind-vite",
+  "name": "archdesign",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,8 +12,9 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^9.0.1",
-    "@mui/material": "^9.0.1",
+    "@mui/icons-material": "^5.16.14",
+    "@mui/lab": "^5.0.0-alpha.175",
+    "@mui/material": "^5.16.14",
     "@reduxjs/toolkit": "^2.12.0",
     "axios": "^1.16.1",
     "framer-motion": "^12.40.0",
@@ -27,8 +28,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@types/node": "^24.12.3",
-    "@types/react": "^19.2.14",
+    "@types/node": "^24.12.4",
+    "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "eslint": "^10.3.0",

@@ -1,4 +1,4 @@
-import apiClient from './apiClients';
+import apiClient from './apiClient';
 import { API, STORAGE } from '@/constants';
 import type { LoginRequest, RegisterRequest, AuthResponse, User } from '@/types';
 
