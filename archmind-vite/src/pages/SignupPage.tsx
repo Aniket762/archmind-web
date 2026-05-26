@@ -7,7 +7,7 @@ import {
 import { motion } from 'framer-motion';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { GitHub, Google } from '@mui/icons-material';
-import { Logo } from '@/components/common/Logo';
+import { Logo } from '@/component/common/Logo';
 import { fadeIn } from '@/animations/variants';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { registerUser, clearError } from '@/store/slices/authSlice';
@@ -143,3 +143,5 @@ export default function SignupPage() {
     </Box>
   );
 }
+
+

@@ -17,8 +17,8 @@ import {
 import {
   mockDashboardStats, mockSubmissions, mockSubmissionTrend, mockSkillRadar,
 } from '@/mocks/data';
-import { DifficultyBadge } from '@/components/common/DifficultyBadge';
-import { ScoreCircle }     from '@/components/common/ScoreCircle';
+import { DifficultyBadge } from '@/component/common/DifficultyBadge';
+import { ScoreCircle }     from '@/component/common/ScoreCircle';
 import { staggerContainer, staggerItem } from '@/animations/variants';
 import { useAppSelector }  from '@/hooks/redux';
 import { selectAuth }      from '@/store';
