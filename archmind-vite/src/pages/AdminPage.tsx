@@ -12,7 +12,7 @@ import {
   BarChartOutlined, CheckCircleOutlined,
 } from '@mui/icons-material';
 import { mockProblems } from '@/mocks/data';
-import { DifficultyBadge } from '@/components/common/DifficultyBadge';
+import { DifficultyBadge } from '@/component/common/DifficultyBadge';
 import { TOPIC_LABEL } from '@/constants';
 import { staggerContainer, staggerItem } from '@/animations/variants';
 
