@@ -2,10 +2,16 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { submissionService } from '@/services/submissionService';
 import type { SubmissionsState, Submission } from '@/types';
 
+type CreateSubmissionPayload = {
+  problemId: string;
+  userId: string;
+  content: string;
+};
+
 export const submitSolution = createAsyncThunk(
-  'submissions/create',
+  'submissions/createSubmission',
   async (
-    submission: Omit<Submission, 'id' | 'createdAt' | 'status'>,
+    submission: CreateSubmissionPayload,
     { rejectWithValue },
   ) => {
     try { return await submissionService.create(submission); }
@@ -14,7 +20,7 @@ export const submitSolution = createAsyncThunk(
 );
 
 export const fetchSubmissionById = createAsyncThunk(
-  'submissions/fetchById',
+  'submissions/getSubmissionById',
   async (id: string, { rejectWithValue }) => {
     try { return await submissionService.getById(id); }
     catch (err: unknown) { return rejectWithValue((err as Error).message); }
@@ -22,7 +28,7 @@ export const fetchSubmissionById = createAsyncThunk(
 );
 
 export const fetchSubmissionsByUser = createAsyncThunk(
-  'submissions/fetchByUser',
+  'submissions/getSubmissionByUserId',
   async (userId: string, { rejectWithValue }) => {
     try { return await submissionService.getByUser(userId); }
     catch (err: unknown) { return rejectWithValue((err as Error).message); }

@@ -3,7 +3,7 @@ import { API, STORAGE } from '@/constants';
 import type { LoginRequest, RegisterRequest, AuthResponse, User } from '@/types';
 
 // ─── Mock mode (flip to false when Spring backend is running) ─────────────────
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 const mockUser: User = {
   id: 'u1',
@@ -48,9 +48,11 @@ export const authService = {
   },
 
   /** POST /api/auth/logout */
-  logout: async (): Promise<void> => {
-    try { await apiClient.post(API.AUTH.LOGOUT); } finally { clearStorage(); }
-  },
+ logout: async (): Promise<void> => {
+  try { await apiClient.post(API.AUTH.LOGOUT); } 
+  catch {} 
+  finally { clearStorage(); }  
+},
 
   /** GET /api/auth/me */
   getMe: async (): Promise<User> => {

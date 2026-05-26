@@ -13,7 +13,7 @@ export function useSubmission() {
   const { user }      = useAppSelector(selectAuth);
 
   const submit = useCallback(async (
-    payload: Omit<Submission, 'id' | 'createdAt' | 'status'>,
+    payload: Omit<Submission, 'id' | 'createdAt' | 'status'> & { content: string },
   ) => {
     return dispatch(submitSolution(payload));
   }, [dispatch]);

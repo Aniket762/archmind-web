@@ -82,9 +82,9 @@ function ProblemPanel({ problem }: { problem: Problem }) {
           {problem.title}
         </Typography>
         <Typography variant="caption" color="text.secondary" display="block" mb={1.5}>
-          {TOPIC_LABEL[problem.topic]}
+            {problem.topics?.[0] ?? 'General'}
         </Typography>
-        <CompanyTagList companies={problem.companies} max={5} />
+        <CompanyTagList companies={problem.companies ?? []} max={5} />
 
         {/* Rubric pills */}
         <Box sx={{
@@ -97,7 +97,7 @@ function ProblemPanel({ problem }: { problem: Problem }) {
             Evaluation rubric
           </Typography>
           <Stack direction="row" flexWrap="wrap" gap={0.5}>
-            {Object.entries(problem.rubric).map(([key, weight]) => (
+            {Object.entries(problem.rubric ?? {}).map(([key, weight]) => (
               <Chip key={key} label={`${key} (${weight}%)`} size="small"
                 sx={{
                   fontSize: '0.64rem', height: 20,
@@ -150,7 +150,7 @@ function ProblemPanel({ problem }: { problem: Problem }) {
             <Alert severity="info" sx={{ borderRadius: 2 }}>
               Try solving without hints first — that's how real interviews work!
             </Alert>
-            {problem.hints.map((hint, i) => (
+            {(problem.hint ?? []).map((hint, i) => (
               <HintCard key={i} hint={hint} index={i} />
             ))}
           </Stack>
@@ -319,6 +319,8 @@ export default function ProblemDetailPage() {
   const dispatch       = useAppDispatch();
   const { current: problem, loading } = useAppSelector(selectProblems);
   const { loading: submitting }       = useAppSelector(selectSubmissions);
+  // get logged in user (optional) to attach userId on submissions
+  const user = useAppSelector((state: any) => state.auth?.user);
 
   // Resizable split
   const containerRef = useRef<HTMLDivElement>(null);
@@ -349,22 +351,33 @@ export default function ProblemDetailPage() {
     }
   }, [dragging, onMouseMove, onMouseUp]);
 
-  const handleSubmit = async (content: string) => {
-    if (!problem || !id) return;
-    const result = await dispatch(submitSolution({
-      problemId: id,
-      userId: 'u1',   // replace with auth user id
-      content,
-      score: undefined,
-      feedback: undefined,
-    }));
-    if (!result.type.endsWith('rejected')) {
-      toast.success('Submitted! AI is evaluating your answer…');
-      setTimeout(() => navigate('/submissions/s1'), 2200);
+const handleSubmit = async (content: string) => {
+  if (!problem || !id) return;
+
+  const result = await dispatch(submitSolution({
+    problemId: id,
+    userId:    user?.id ?? 'unknown',
+    content,
+  }));
+
+  if (!result.type.endsWith('rejected')) {
+    toast.success('Submitted! Evaluating your answer…');
+
+    // Get the real submission ID from backend response
+    // payload type may vary depending on backend; use any to avoid missing type
+    const payload = result.payload as any;
+    const submissionId = payload?.id ?? payload?.submissionId;
+
+    if (submissionId) {
+      setTimeout(() => navigate(`/submissions/${submissionId}`), 2200);
     } else {
-      toast.error('Submission failed. Please try again.');
+      // fallback — go back to problems if no id returned
+      setTimeout(() => navigate('/problems'), 2200);
     }
-  };
+  } else {
+    toast.error('Submission failed. Please try again.');
+  }
+};
 
   if (loading || !problem) {
     return <Box p={4}><TableSkeleton rows={6} /></Box>;

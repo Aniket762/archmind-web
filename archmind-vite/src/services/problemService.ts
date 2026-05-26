@@ -3,7 +3,7 @@ import { API } from '@/constants';
 import type { Problem, Level, Topic } from '@/types';
 import { mockProblems } from '@/mocks/data';
 
-const USE_MOCK = true;
+const USE_MOCK = false;
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export interface ProblemFilters {
@@ -19,7 +19,7 @@ export const problemService = {
       await delay(400);
       let results = [...mockProblems];
       if (filters.level)  results = results.filter((p) => p.level === filters.level);
-      if (filters.topic)  results = results.filter((p) => p.topic === filters.topic);
+      if (filters.topic)  results = results.filter((p) => Array.isArray(p.topics) ? p.topics.includes(filters.topic as any) : p.topics === filters.topic);
       if (filters.search) {
         const q = filters.search.toLowerCase();
         results = results.filter((p) => p.title.toLowerCase().includes(q));
@@ -51,7 +51,9 @@ export const problemService = {
 
   /** GET /api/problems/topic/:topic */
   getByTopic: async (topic: Topic): Promise<Problem[]> => {
-    if (USE_MOCK) return mockProblems.filter((p) => p.topic === topic);
+
+
+    if (USE_MOCK) return mockProblems.filter((p) => Array.isArray(p.topics) ? p.topics.includes(topic as any) : p.topics === topic);
     const { data } = await apiClient.get<Problem[]>(API.PROBLEMS.BY_TOPIC(topic));
     return data;
   },

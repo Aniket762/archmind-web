@@ -19,43 +19,57 @@ export type SubmissionStatus = 'DRAFT' | 'SUBMITTED' | 'EVALUATING' | 'EVALUATED
 /** Matches archmind.model.problem.Problem */
 export interface Problem {
   id: string;
+  slug: string;
   title: string;
   description: string;
   level: Level;
-  topic: Topic;
-  companies: string[];
-  tags: string[];
-  hints: string[];
-  rubric: Record<string, number>;
+  topics: string[];          // array, not single enum
+  hint: string[];            // singular to match your DB
+  companies?: string[];      // optional — not in your DB yet
+  tags?: string[];           // optional
+  rubric?: Record<string, number>; // optional
+  testCase?: string[];
+  createdBy?: string;
+  isPublished?: boolean;
   solvedBy?: number;
   successRate?: number;
   premium?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 /** Matches archmind.model.user.User */
 export interface User {
-  id: string;
-  name: string;
+  id: string;           // maps from userId via @JsonProperty
+  name: string;         // maps from userName via @JsonProperty
   email: string;
-  role: UserRole;
-  joinedAt?: string;
-  avatarUrl?: string;
-  streak?: number;
-  rank?: number;
-  totalScore?: number;
+  role: UserRole;       // maps from userRole via @JsonProperty
+  userStatus?: string;
+  isEmailValid?: boolean;
+  joinedAt?: string;    // not in your DB, keep optional
+  avatarUrl?: string;   // not in your DB, keep optional
+  streak?: number;      // not in your DB, keep optional
+  rank?: number;        // not in your DB, keep optional
+  totalScore?: number;  // not in your DB, keep optional
+  createdAt?: string;
+  updatedAt?: string;
+  lastLoginAt?: string;
 }
 
 /** Matches archmind.model.solution.Submission */
 export interface Submission {
-  id: string;
-  problemId: string;
+  id?: string;              // maps from submissionId via @JsonProperty
+  submissionId?: string;    // raw backend field
   userId: string;
-  content: string;
-  status: SubmissionStatus;
+  problemId: string;
+  solution?: string;        // backend field name
+  content?: string;         // frontend field name (mapped before sending)
+  language?: string;
+  submittedAt?: string;
+  createdAt?: string;
   score?: number;
+  status?: SubmissionStatus;
   feedback?: SubmissionFeedback;
-  createdAt: string;
-  updatedAt?: string;
 }
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────

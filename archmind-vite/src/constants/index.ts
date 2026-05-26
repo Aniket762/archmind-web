@@ -1,6 +1,5 @@
 import type { Level, Topic, SubmissionStatus } from '@/types';
 
-// ─── Backend enum mappings ────────────────────────────────────────────────────
 
 export const LEVELS: Level[] = ['EASY', 'MEDIUM', 'HARD'];
 
@@ -52,7 +51,6 @@ export const SUBMISSION_STATUS_LABEL: Record<SubmissionStatus, string> = {
   FAILED: 'Failed',
 };
 
-// ─── API routes (matches your Spring controllers) ─────────────────────────────
 
 export const API = {
   AUTH: {
@@ -62,19 +60,19 @@ export const API = {
     REFRESH: '/api/auth/refresh',
     ME: '/api/auth/me',
   },
-  PROBLEMS: {
-    BASE: '/api/problems',
-    BY_ID: (id: string) => `/api/problems/${id}`,
-    BY_LEVEL: (level: Level) => `/api/problems/level/${level}`,
-    BY_TOPIC: (topic: Topic) => `/api/problems/topic/${topic}`,
+ PROBLEMS: {
+    BASE: '/api/problems/getAllProblems',  
+    BY_ID: (id: string) => `/api/problems/getProblemsById/${id}`,
+    BY_LEVEL: (level: Level) => `/api/problems/getProblemsByLevel/${level}`,
+    BY_TOPIC: (topic: Topic) => `/api/problems/getProblemsByTopic/${topic}`,
     SEARCH: '/api/problems/search',
   },
   SUBMISSIONS: {
-    BASE: '/api/submission',
-    BY_ID: (id: string) => `/api/submission/${id}`,
-    BY_USER: (userId: string) => `/api/submission/user/${userId}`,
-    BY_PROBLEM: (problemId: string) => `/api/submission/problem/${problemId}`,
-  },
+  BASE: '/api/submission/createSubmission',           
+  BY_ID: (id: string) => `/api/submission/getSubmissionById/${id}`,
+  BY_USER: (userId: string) => `/api/submission/getSubmissionByUserId/${userId}`,
+  BY_PROBLEM: (problemId: string) => `/api/submission/getSubmissionByProblemId/${problemId}`,
+},
   USERS: {
     BASE: '/api/users',
     BY_ID: (id: string) => `/api/users/${id}`,

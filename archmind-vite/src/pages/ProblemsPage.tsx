@@ -205,18 +205,18 @@ function ListView({
               <TableCell sx={{ py: 1.5 }}>
                 <Typography variant="body2" fontWeight={600}>{p.title}</Typography>
                 <Typography variant="caption" color="text.secondary">
-                  {TOPIC_LABEL[p.topic]}
+                   {p.topics?.[0] ?? 'General'}
                 </Typography>
               </TableCell>
               <TableCell sx={{ py: 1.5 }}>
                 <DifficultyBadge level={p.level} />
               </TableCell>
               <TableCell sx={{ py: 1.5, display: { xs: 'none', md: 'table-cell' } }}>
-                <Chip label={TOPIC_LABEL[p.topic]} size="small" variant="outlined"
+                <Chip label= {p.topics?.[0] ?? 'General'} size="small" variant="outlined"
                   sx={{ fontSize: '0.67rem', height: 20 }} />
               </TableCell>
               <TableCell sx={{ py: 1.5 }}>
-                <CompanyTagList companies={p.companies} max={2} />
+                <CompanyTagList companies={p.companies ?? []} max={2} />
               </TableCell>
               <TableCell sx={{ py: 1.5, display: { xs: 'none', lg: 'table-cell' } }}>
                 <Typography variant="body2" color="text.secondary">
@@ -278,9 +278,9 @@ function GridView({
                   </Stack>
                   <Typography variant="body1" fontWeight={700} gutterBottom>{p.title}</Typography>
                   <Typography variant="caption" color="text.secondary" display="block" mb={2}>
-                    {TOPIC_LABEL[p.topic]}
+                    {p.topics?.[0] ?? 'General'}
                   </Typography>
-                  <CompanyTagList companies={p.companies} max={3} />
+                  <CompanyTagList companies={p.companies ?? []} max={3} />
                   {p.solvedBy != null && (
                     <Typography variant="caption" color="text.secondary"
                       display="block" mt={2}>

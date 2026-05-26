@@ -34,7 +34,13 @@ export default function ProfilePage() {
   const { user } = useAppSelector(selectAuth);
   const stats    = mockDashboardStats;
 
-  if (!user) return null;
+ if (!user) {
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 10 }}>
+      <Typography color="text.secondary">Please log in to view your profile.</Typography>
+    </Box>
+  );
+}
 
   return (
     <motion.div variants={staggerContainer} initial="initial" animate="animate">
@@ -268,7 +274,7 @@ export default function ProfilePage() {
                           Problem #{s.problemId}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          {new Date(s.createdAt).toLocaleDateString()}
+                          {s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '—'}
                         </Typography>
                       </Box>
                       <Chip
