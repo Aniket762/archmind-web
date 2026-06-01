@@ -36,15 +36,15 @@ export default function SubmissionResultPage() {
   if (loading || !feedback) {
     return <Box p={4}><TableSkeleton rows={6} /></Box>;
   }
-
-  const radarData = Object.entries(feedback.scores).map(([skill, val]) => ({
+  console.log('Feedback:', feedback);
+  const radarData = Object.entries(feedback.scores || {score:100}).map(([skill, val]) => ({
     skill: skill.length > 14 ? skill.slice(0, 14) + '…' : skill,
     score: Math.round((val.score / val.max) * 100),
     fullMark: 100,
   }));
 
-  const scoreColor = getScoreColor(feedback.overallScore);
-  const scoreLabel = getScoreLabel(feedback.overallScore);
+  const scoreColor = getScoreColor(feedback.overallScore || 12 );
+  const scoreLabel = getScoreLabel(feedback.overallScore) || 12;
 
   return (
     <motion.div variants={staggerContainer} initial="initial" animate="animate">
@@ -75,7 +75,7 @@ export default function SubmissionResultPage() {
               justifyContent="space-between"
             >
               <Stack direction="row" spacing={3} alignItems="center">
-                <ScoreCircle score={feedback.overallScore} size={96} />
+                <ScoreCircle score={feedback.overallScore || 12} size={96} />
                 <Box>
                   <Stack direction="row" spacing={1} alignItems="center" mb={0.5}>
                     <AutoAwesomeOutlined sx={{ fontSize: 16, color: 'primary.main' }} />
@@ -84,7 +84,7 @@ export default function SubmissionResultPage() {
                     </Typography>
                   </Stack>
                   <Typography variant="h4" fontWeight={800} letterSpacing="-0.02em" mb={0.5}>
-                    {feedback.problemTitle}
+                    {feedback.problemTitle || 'Problem Title'}
                   </Typography>
                   <Stack direction="row" spacing={1.5} alignItems="center">
                     <Chip
@@ -135,7 +135,7 @@ export default function SubmissionResultPage() {
                   Rubric Breakdown
                 </Typography>
                 <Stack spacing={2}>
-                  {Object.entries(feedback.scores).map(([cat, val]) => (
+                  {Object.entries(feedback.scores || {scores:50}).map(([cat, val]) => (
                     <RubricScoreCard
                       key={cat}
                       category={cat}
@@ -184,7 +184,7 @@ export default function SubmissionResultPage() {
                   <Typography variant="h6" fontWeight={700}>Strengths</Typography>
                 </Stack>
                 <List dense disablePadding>
-                  {feedback.strengths.map((s, i) => (
+                  {(feedback?.strengths || []).map((s, i) => (
                     <ListItem key={i} disablePadding sx={{ mb: 1.5, alignItems: 'flex-start' }}>
                       <ListItemIcon sx={{ minWidth: 24, mt: 0.3 }}>
                         <Box sx={{
@@ -216,7 +216,7 @@ export default function SubmissionResultPage() {
                   <Typography variant="h6" fontWeight={700}>Areas to Improve</Typography>
                 </Stack>
                 <List dense disablePadding>
-                  {feedback.weaknesses.map((w, i) => (
+                  {(feedback?.weaknesses || []).map((w, i) => (
                     <ListItem key={i} disablePadding sx={{ mb: 1.5, alignItems: 'flex-start' }}>
                       <ListItemIcon sx={{ minWidth: 24, mt: 0.3 }}>
                         <Box sx={{
@@ -248,7 +248,7 @@ export default function SubmissionResultPage() {
               <CardContent sx={{ p: 3 }}>
                 <Typography variant="h6" fontWeight={700} mb={2}>Missing Concepts</Typography>
                 <Stack spacing={1}>
-                  {feedback.missingConcepts.map((c, i) => (
+                  {(feedback?.missingConcepts || []).map((c, i) => (
                     <Box key={i} sx={{
                       display: 'flex', alignItems: 'flex-start', gap: 1.5,
                       p: 1.5, borderRadius: 1.5,
@@ -287,7 +287,7 @@ export default function SubmissionResultPage() {
                   <Typography variant="h6" fontWeight={700}>AI Suggestions</Typography>
                 </Stack>
                 <Stack spacing={2}>
-                  {feedback.suggestions.map((s, i) => (
+                  {(feedback?.suggestions || []).map((s, i) => (
                     <Box key={i} sx={{
                       p: 2, borderRadius: 2,
                       border: '1px solid', borderColor: (t) => alpha(t.palette.primary.main, 0.15),

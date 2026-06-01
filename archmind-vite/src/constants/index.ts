@@ -77,9 +77,10 @@ export const API = {
     BASE: '/api/users',
     BY_ID: (id: string) => `/api/users/${id}`,
   },
+  DASHBOARD: {
+  STATS: (userId: string) => `/api/dashboard/getDashboardStats/${userId}`,
+},
 } as const;
-
-// ─── Storage keys ─────────────────────────────────────────────────────────────
 
 export const STORAGE = {
   TOKEN: 'archdesign_token',
@@ -88,8 +89,6 @@ export const STORAGE = {
   THEME: 'archdesign_theme',
   DRAFT_PREFIX: 'draft_',
 } as const;
-
-// ─── Score thresholds ─────────────────────────────────────────────────────────
 
 export const SCORE = {
   EXCELLENT: 90,
@@ -110,3 +109,5 @@ export function getScoreLabel(score: number): string {
   if (score >= SCORE.AVERAGE) return 'Needs Improvement';
   return 'Poor';
 }
+
+

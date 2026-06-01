@@ -1,4 +1,3 @@
-// ─── Backend-aligned enums ───────────────────────────────────────────────────
 
 export type Level = 'EASY' | 'MEDIUM' | 'HARD';
 export type Topic =
@@ -14,20 +13,17 @@ export type Topic =
 export type UserRole = 'USER' | 'ADMIN';
 export type SubmissionStatus = 'DRAFT' | 'SUBMITTED' | 'EVALUATING' | 'EVALUATED' | 'FAILED';
 
-// ─── Backend models ────────────────────────────────────────────────────────────
-
-/** Matches archmind.model.problem.Problem */
 export interface Problem {
   id: string;
   slug: string;
   title: string;
   description: string;
   level: Level;
-  topics: string[];          // array, not single enum
-  hint: string[];            // singular to match your DB
-  companies?: string[];      // optional — not in your DB yet
-  tags?: string[];           // optional
-  rubric?: Record<string, number>; // optional
+  topics: string[];         
+  hint: string[];          
+  companies?: string[];      
+  tags?: string[];          
+  rubric?: Record<string, number>;
   testCase?: string[];
   createdBy?: string;
   isPublished?: boolean;
@@ -38,32 +34,30 @@ export interface Problem {
   updatedAt?: string;
 }
 
-/** Matches archmind.model.user.User */
 export interface User {
-  id: string;           // maps from userId via @JsonProperty
-  name: string;         // maps from userName via @JsonProperty
+  id: string;          
+  name: string;         
   email: string;
-  role: UserRole;       // maps from userRole via @JsonProperty
+  role: UserRole;       
   userStatus?: string;
   isEmailValid?: boolean;
-  joinedAt?: string;    // not in your DB, keep optional
-  avatarUrl?: string;   // not in your DB, keep optional
-  streak?: number;      // not in your DB, keep optional
-  rank?: number;        // not in your DB, keep optional
-  totalScore?: number;  // not in your DB, keep optional
+  joinedAt?: string;   
+  avatarUrl?: string;   
+  streak?: number;      
+  rank?: number;        
+  totalScore?: number; 
   createdAt?: string;
   updatedAt?: string;
   lastLoginAt?: string;
 }
 
-/** Matches archmind.model.solution.Submission */
 export interface Submission {
-  id?: string;              // maps from submissionId via @JsonProperty
-  submissionId?: string;    // raw backend field
+  id?: string;              
+  submissionId?: string;    
   userId: string;
   problemId: string;
-  solution?: string;        // backend field name
-  content?: string;         // frontend field name (mapped before sending)
+  solution?: string;       
+  content?: string;         
   language?: string;
   submittedAt?: string;
   createdAt?: string;
@@ -72,9 +66,6 @@ export interface Submission {
   feedback?: SubmissionFeedback;
 }
 
-// ─── Auth ─────────────────────────────────────────────────────────────────────
-
-/** Matches blog.api.dto.RegisterRequest */
 export interface RegisterRequest {
   name: string;
   email: string;
@@ -92,8 +83,6 @@ export interface AuthResponse {
   user: User;
 }
 
-// ─── Feedback (AI evaluation, not in backend yet) ────────────────────────────
-
 export interface RubricScore {
   score: number;
   max: number;
@@ -110,14 +99,10 @@ export interface SubmissionFeedback {
   missingConcepts: string[];
   suggestions: string[];
 }
-
-// ─── UI helpers ───────────────────────────────────────────────────────────────
-
 export interface SelectOption<T = string> {
   label: string;
   value: T;
 }
-
 export interface PaginationMeta {
   page: number;
   size: number;
@@ -138,27 +123,58 @@ export interface ApiError {
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
+// REPLACE the existing DashboardStats interface
 export interface DashboardStats {
-  solved: number;
-  total: number;
-  streak: number;
-  rank: number;
-  score: number;
-  easyCount: { solved: number; total: number };
-  mediumCount: { solved: number; total: number };
-  hardCount: { solved: number; total: number };
+  // top stat cards
+  totalSolved: number;        // was: solved
+  totalProblems: number;      // was: total
+  currentStreak: number;      // was: streak
+  globalRank: number;         // was: rank
+  totalScore: number;         // was: score
+
+  // difficulty breakdown
+  easySolved: number;         // was: easyCount.solved
+  easyTotal: number;          // was: easyCount.total
+  mediumSolved: number;       // was: mediumCount.solved
+  mediumTotal: number;        // was: mediumCount.total
+  hardSolved: number;         // was: hardCount.solved
+  hardTotal: number;          // was: hardCount.total
+
+  // charts + widgets
+  submissionTrend: SubmissionTrendPoint[];
+  skillBreakdown: SkillRadarPoint[];
+  activityData: DayActivity[];
+  recentSubmissions: RecentSubmission[];
 }
 
+// REPLACE the existing SubmissionTrendPoint — no change needed, already matches
 export interface SubmissionTrendPoint {
   month: string;
   submissions: number;
   avgScore: number;
 }
 
+// REPLACE the existing SkillRadarPoint — rename to match backend field name
 export interface SkillRadarPoint {
   skill: string;
   score: number;
   fullMark: number;
+}
+
+// ADD these two new ones below
+export interface DayActivity {
+  date: string;    // "2024-01-15"
+  count: number;
+}
+
+export interface RecentSubmission {
+  submissionId: string;
+  problemId: string;
+  problemTitle: string;
+  level: Level;
+  score: number | null;
+  status: string;
+  submittedAt: string;
 }
 
 // ─── Discussions ─────────────────────────────────────────────────────────────

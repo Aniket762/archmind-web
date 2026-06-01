@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box, Grid, Typography, Card, CardContent, Stack,
-  Chip, Button, LinearProgress, Avatar, alpha,
+  Chip, Button, LinearProgress, alpha,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -14,15 +14,14 @@ import {
   TrendingUpOutlined, LocalFireDepartmentOutlined,
   EmojiEventsOutlined, ArrowForwardOutlined, AddOutlined,
 } from '@mui/icons-material';
-import {
-  mockDashboardStats, mockSubmissions, mockSubmissionTrend, mockSkillRadar,
-} from '@/mocks/data';
 import { DifficultyBadge } from '@/component/common/DifficultyBadge';
 import { ScoreCircle }     from '@/component/common/ScoreCircle';
+import { CardSkeleton }    from '@/component/common/LoadingSkeleton';
 import { staggerContainer, staggerItem } from '@/animations/variants';
 import { useAppSelector }  from '@/hooks/redux';
 import { selectAuth }      from '@/store';
-import type { DashboardStats, Submission } from '@/types';
+import { dashboardService } from '@/services/dashboardService';
+import type { DashboardStats, RecentSubmission, DayActivity } from '@/types';
 
 // ─── Stat card ────────────────────────────────────────────────────────────────
 
@@ -70,7 +69,7 @@ function StatCard({ label, value, sub, icon: Icon, color = '#6C63FF' }: StatCard
 function DifficultyBar({
   label, solved, total, color,
 }: { label: string; solved: number; total: number; color: string }) {
-  const pct = Math.round((solved / total) * 100);
+  const pct = total > 0 ? Math.round((solved / total) * 100) : 0;
   return (
     <Box>
       <Stack direction="row" justifyContent="space-between" mb={0.75}>
@@ -94,13 +93,27 @@ function DifficultyBar({
 
 // ─── Activity heatmap ─────────────────────────────────────────────────────────
 
-function ActivityHeatmap() {
+function ActivityHeatmap({ activityData }: { activityData: DayActivity[] }) {
+  const activityMap: Record<string, number> = {};
+  activityData.forEach((d) => { activityMap[d.date] = d.count; });
+
+  const today = new Date();
   const weeks = 18;
-  const grid = Array.from({ length: weeks }, (_, w) =>
-    Array.from({ length: 7 }, (_, d) => ({
-      count: Math.random() > 0.58 ? Math.floor(Math.random() * 4) + 1 : 0,
-    })),
-  );
+  const totalDays = weeks * 7;
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - totalDays + 1);
+
+  const grid: { date: string; count: number }[][] = [];
+  for (let w = 0; w < weeks; w++) {
+    const week: { date: string; count: number }[] = [];
+    for (let d = 0; d < 7; d++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + w * 7 + d);
+      const dateStr = date.toISOString().split('T')[0];
+      week.push({ date: dateStr, count: activityMap[dateStr] ?? 0 });
+    }
+    grid.push(week);
+  }
 
   const bgFor = (count: number) => {
     if (!count) return 'rgba(108,99,255,0.06)';
@@ -116,7 +129,7 @@ function ActivityHeatmap() {
             {week.map((day, di) => (
               <Box
                 key={di}
-                title={`${day.count} submissions`}
+                title={`${day.date}: ${day.count} submission${day.count !== 1 ? 's' : ''}`}
                 sx={{
                   width: 12, height: 12, borderRadius: 0.5,
                   backgroundColor: bgFor(day.count),
@@ -146,26 +159,30 @@ function ActivityHeatmap() {
 
 // ─── Recent submissions list ──────────────────────────────────────────────────
 
-function RecentSubmissions({
+function RecentSubmissionsList({
   submissions,
   navigate,
 }: {
-  submissions: Submission[];
+  submissions: RecentSubmission[];
   navigate: (path: string) => void;
 }) {
-  const problemMap: Record<string, string> = {
-    '1': 'Design a URL Shortener',
-    '2': 'Design Twitter',
-    '4': 'Design Uber',
+  const statusColors: Record<string, { bg: string; text: string }> = {
+    EVALUATED:  { bg: 'rgba(81,207,102,0.1)',  text: '#51CF66' },
+    DRAFT:      { bg: 'rgba(255,179,71,0.1)',  text: '#FFB347' },
+    EVALUATING: { bg: 'rgba(108,99,255,0.1)',  text: '#6C63FF' },
+    SUBMITTED:  { bg: 'rgba(108,99,255,0.1)',  text: '#6C63FF' },
+    FAILED:     { bg: 'rgba(255,107,107,0.1)', text: '#FF6B6B' },
   };
 
-  const statusColors: Record<string, { bg: string; text: string }> = {
-    EVALUATED: { bg: 'rgba(81,207,102,0.1)',  text: '#51CF66' },
-    DRAFT:     { bg: 'rgba(255,179,71,0.1)',  text: '#FFB347' },
-    EVALUATING:{ bg: 'rgba(108,99,255,0.1)', text: '#6C63FF' },
-    SUBMITTED: { bg: 'rgba(108,99,255,0.1)', text: '#6C63FF' },
-    FAILED:    { bg: 'rgba(255,107,107,0.1)', text: '#FF6B6B' },
-  };
+  if (submissions.length === 0) {
+    return (
+      <Box textAlign="center" py={4}>
+        <Typography variant="body2" color="text.secondary">
+          No submissions yet — start solving problems!
+        </Typography>
+      </Box>
+    );
+  }
 
   return (
     <Stack spacing={1.5}>
@@ -173,8 +190,8 @@ function RecentSubmissions({
         const colors = statusColors[s.status] ?? statusColors.DRAFT;
         return (
           <Box
-            key={s.id}
-            onClick={() => navigate(`/submissions/${s.id}`)}
+            key={s.submissionId}
+            onClick={() => navigate(`/submissions/${s.submissionId}`)}
             sx={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2,
@@ -185,14 +202,17 @@ function RecentSubmissions({
           >
             <Box flex={1} minWidth={0}>
               <Typography variant="body2" fontWeight={600} noWrap>
-                {problemMap[s.problemId] ?? `Problem #${s.problemId}`}
+                {s.problemTitle}
               </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {new Date(s.createdAt).toLocaleDateString()}
-              </Typography>
+              <Stack direction="row" spacing={1} alignItems="center" mt={0.25}>
+                <Typography variant="caption" color="text.secondary">
+                  {new Date(s.submittedAt).toLocaleDateString()}
+                </Typography>
+                <DifficultyBadge level={s.level} />
+              </Stack>
             </Box>
             <Stack direction="row" spacing={1.5} alignItems="center" ml={2}>
-              {s.score != null && <ScoreCircle score={s.score} size={44} />}
+              {s.score != null && <ScoreCircle score={Math.round(s.score)} size={44} />}
               <Chip
                 label={s.status}
                 size="small"
@@ -210,15 +230,63 @@ function RecentSubmissions({
   );
 }
 
+// ─── Loading skeleton ─────────────────────────────────────────────────────────
+
+function DashboardSkeleton() {
+  return (
+    <Box>
+      <Grid container spacing={2} mb={3}>
+        {[1, 2, 3, 4].map((i) => (
+          <Grid item xs={6} sm={3} key={i}><CardSkeleton /></Grid>
+        ))}
+      </Grid>
+      <Grid container spacing={3}>
+        {[1, 2, 3, 4].map((i) => (
+          <Grid item xs={12} md={6} key={i}><CardSkeleton /></Grid>
+        ))}
+      </Grid>
+    </Box>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const navigate = useNavigate();
-  const { user } = useAppSelector(selectAuth);
-  const stats    = mockDashboardStats;
+  const navigate              = useNavigate();
+  const { user }              = useAppSelector(selectAuth);
+  const [stats, setStats]     = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState<string | null>(null);
+
+  const loadStats = () => {
+    if (!user?.id) return;
+    setLoading(true);
+    setError(null);
+    dashboardService
+      .getStats(user.id)
+      .then(setStats)
+      .catch(() => setError('Failed to load dashboard data'))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => { loadStats(); }, [user?.id]);
+
+  if (loading) return <DashboardSkeleton />;
+
+  if (error || !stats) {
+    return (
+      <Box textAlign="center" py={10}>
+        <Typography variant="h6" color="text.secondary" mb={2}>
+          {error ?? 'No data available'}
+        </Typography>
+        <Button variant="outlined" onClick={loadStats}>Retry</Button>
+      </Box>
+    );
+  }
 
   return (
     <motion.div variants={staggerContainer} initial="initial" animate="animate">
+
       {/* Header */}
       <motion.div variants={staggerItem}>
         <Stack
@@ -232,13 +300,14 @@ export default function DashboardPage() {
               Welcome back, {user?.name?.split(' ')[0] ?? 'Engineer'} 👋
             </Typography>
             <Typography variant="body2" color="text.secondary" mt={0.5}>
-              {stats.streak > 0
-                ? `🔥 ${stats.streak}-day streak — keep it going!`
+              {stats.currentStreak > 0
+                ? `🔥 ${stats.currentStreak}-day streak — keep it going!`
                 : 'Start a new problem today!'}
             </Typography>
           </Box>
           <Button
-            variant="contained" startIcon={<AddOutlined />}
+            variant="contained"
+            startIcon={<AddOutlined />}
             onClick={() => navigate('/problems')}
             sx={{
               mt: { xs: 2, sm: 0 },
@@ -255,25 +324,45 @@ export default function DashboardPage() {
       <motion.div variants={staggerItem}>
         <Grid container spacing={2} mb={3}>
           <Grid item xs={6} sm={3}>
-            <StatCard label="Problems Solved" value={stats.solved}
-              sub={`of ${stats.total} total`} icon={TrendingUpOutlined} color="#6C63FF" />
+            <StatCard
+              label="Problems Solved"
+              value={stats.totalSolved}
+              sub={`of ${stats.totalProblems} total`}
+              icon={TrendingUpOutlined}
+              color="#6C63FF"
+            />
           </Grid>
           <Grid item xs={6} sm={3}>
-            <StatCard label="Current Streak" value={`${stats.streak}d`}
-              sub="days in a row" icon={LocalFireDepartmentOutlined} color="#FF6B6B" />
+            <StatCard
+              label="Current Streak"
+              value={`${stats.currentStreak}d`}
+              sub="days in a row"
+              icon={LocalFireDepartmentOutlined}
+              color="#FF6B6B"
+            />
           </Grid>
           <Grid item xs={6} sm={3}>
-            <StatCard label="Global Rank" value={`#${stats.rank.toLocaleString()}`}
-              sub="top 5%" icon={EmojiEventsOutlined} color="#FFB347" />
+            <StatCard
+              label="Global Rank"
+              value={`#${stats.globalRank.toLocaleString()}`}
+              sub="based on total score"
+              icon={EmojiEventsOutlined}
+              color="#FFB347"
+            />
           </Grid>
           <Grid item xs={6} sm={3}>
-            <StatCard label="Total Score" value={stats.score.toLocaleString()}
-              sub="+240 this week" color="#51CF66" />
+            <StatCard
+              label="Total Score"
+              value={stats.totalScore.toLocaleString()}
+              sub="cumulative score"
+              color="#51CF66"
+            />
           </Grid>
         </Grid>
       </motion.div>
 
       <Grid container spacing={3}>
+
         {/* Submission trend chart */}
         <Grid item xs={12} md={8}>
           <motion.div variants={staggerItem}>
@@ -284,35 +373,46 @@ export default function DashboardPage() {
                   <Chip label="Last 7 months" size="small" variant="outlined"
                     sx={{ fontSize: '0.72rem' }} />
                 </Stack>
-                <ResponsiveContainer width="100%" height={210}>
-                  <AreaChart data={mockSubmissionTrend}
-                    margin={{ top: 5, right: 5, bottom: 0, left: -20 }}>
-                    <defs>
-                      <linearGradient id="gradPrimary" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%"  stopColor="#6C63FF" stopOpacity={0.22} />
-                        <stop offset="95%" stopColor="#6C63FF" stopOpacity={0}    />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                    <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#666' }}
-                      axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 11, fill: '#666' }}
-                      axisLine={false} tickLine={false} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: '#1a1a28',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        borderRadius: 8, fontSize: 12,
-                      }}
-                    />
-                    <Area type="monotone" dataKey="avgScore"
-                      stroke="#6C63FF" fill="url(#gradPrimary)"
-                      strokeWidth={2.5}
-                      dot={{ fill: '#6C63FF', r: 4, strokeWidth: 0 }}
-                      name="Avg Score"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {stats.submissionTrend.length === 0 ? (
+                  <Box textAlign="center" py={6}>
+                    <Typography variant="body2" color="text.secondary">
+                      No submission data yet
+                    </Typography>
+                  </Box>
+                ) : (
+                  <ResponsiveContainer width="100%" height={210}>
+                    <AreaChart
+                      data={stats.submissionTrend}
+                      margin={{ top: 5, right: 5, bottom: 0, left: -20 }}
+                    >
+                      <defs>
+                        <linearGradient id="gradPrimary" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%"  stopColor="#6C63FF" stopOpacity={0.22} />
+                          <stop offset="95%" stopColor="#6C63FF" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                      <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#666' }}
+                        axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 11, fill: '#666' }}
+                        axisLine={false} tickLine={false} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#1a1a28',
+                          border: '1px solid rgba(255,255,255,0.08)',
+                          borderRadius: 8, fontSize: 12,
+                        }}
+                      />
+                      <Area
+                        type="monotone" dataKey="avgScore"
+                        stroke="#6C63FF" fill="url(#gradPrimary)"
+                        strokeWidth={2.5}
+                        dot={{ fill: '#6C63FF', r: 4, strokeWidth: 0 }}
+                        name="Avg Score"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
           </motion.div>
@@ -325,24 +425,44 @@ export default function DashboardPage() {
               <CardContent sx={{ p: 3 }}>
                 <Typography variant="h6" fontWeight={700} mb={3}>Progress</Typography>
                 <Stack spacing={3}>
-                  <DifficultyBar label="Easy"   solved={stats.easyCount.solved}
-                    total={stats.easyCount.total}   color="#51CF66" />
-                  <DifficultyBar label="Medium" solved={stats.mediumCount.solved}
-                    total={stats.mediumCount.total} color="#FFB347" />
-                  <DifficultyBar label="Hard"   solved={stats.hardCount.solved}
-                    total={stats.hardCount.total}   color="#FF6B6B" />
+                  <DifficultyBar
+                    label="Easy"
+                    solved={stats.easySolved}
+                    total={stats.easyTotal}
+                    color="#51CF66"
+                  />
+                  <DifficultyBar
+                    label="Medium"
+                    solved={stats.mediumSolved}
+                    total={stats.mediumTotal}
+                    color="#FFB347"
+                  />
+                  <DifficultyBar
+                    label="Hard"
+                    solved={stats.hardSolved}
+                    total={stats.hardTotal}
+                    color="#FF6B6B"
+                  />
                 </Stack>
                 <Box mt={4}>
-                  <Typography variant="body2" color="text.secondary" mb={2}>Total Solved</Typography>
+                  <Typography variant="body2" color="text.secondary" mb={2}>
+                    Total Solved
+                  </Typography>
                   <Stack direction="row" alignItems="center" spacing={2}>
                     <ScoreCircle
-                      score={Math.round((stats.solved / stats.total) * 100)}
+                      score={
+                        stats.totalProblems > 0
+                          ? Math.round((stats.totalSolved / stats.totalProblems) * 100)
+                          : 0
+                      }
                       size={72}
                     />
                     <Box>
-                      <Typography variant="h5" fontWeight={800}>{stats.solved}</Typography>
+                      <Typography variant="h5" fontWeight={800}>
+                        {stats.totalSolved}
+                      </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        of {stats.total} problems
+                        of {stats.totalProblems} problems
                       </Typography>
                     </Box>
                   </Stack>
@@ -357,18 +477,31 @@ export default function DashboardPage() {
           <motion.div variants={staggerItem}>
             <Card sx={{ border: '1px solid', borderColor: 'divider' }}>
               <CardContent sx={{ p: 3 }}>
-                <Typography variant="h6" fontWeight={700} mb={0.5}>Skill Breakdown</Typography>
+                <Typography variant="h6" fontWeight={700} mb={0.5}>
+                  Skill Breakdown
+                </Typography>
                 <Typography variant="caption" color="text.secondary" mb={2} display="block">
                   Based on your last 10 submissions
                 </Typography>
-                <ResponsiveContainer width="100%" height={250}>
-                  <RadarChart data={mockSkillRadar}>
-                    <PolarGrid stroke="rgba(255,255,255,0.07)" />
-                    <PolarAngleAxis dataKey="skill" tick={{ fontSize: 11, fill: '#888' }} />
-                    <Radar dataKey="score" stroke="#6C63FF" fill="#6C63FF"
-                      fillOpacity={0.2} strokeWidth={2} />
-                  </RadarChart>
-                </ResponsiveContainer>
+                {stats.skillBreakdown.length === 0 ? (
+                  <Box textAlign="center" py={6}>
+                    <Typography variant="body2" color="text.secondary">
+                      Submit more problems to see your skill breakdown
+                    </Typography>
+                  </Box>
+                ) : (
+                  <ResponsiveContainer width="100%" height={250}>
+                    <RadarChart data={stats.skillBreakdown}>
+                      <PolarGrid stroke="rgba(255,255,255,0.07)" />
+                      <PolarAngleAxis dataKey="skill" tick={{ fontSize: 11, fill: '#888' }} />
+                      <Radar
+                        dataKey="score"
+                        stroke="#6C63FF" fill="#6C63FF"
+                        fillOpacity={0.2} strokeWidth={2}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                )}
               </CardContent>
             </Card>
           </motion.div>
@@ -381,10 +514,13 @@ export default function DashboardPage() {
               <CardContent sx={{ p: 3 }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
                   <Typography variant="h6" fontWeight={700}>Activity</Typography>
-                  <Chip label={`${stats.streak} day streak 🔥`} size="small" color="error"
-                    sx={{ fontSize: '0.72rem' }} />
+                  <Chip
+                    label={`${stats.currentStreak} day streak 🔥`}
+                    size="small" color="error"
+                    sx={{ fontSize: '0.72rem' }}
+                  />
                 </Stack>
-                <ActivityHeatmap />
+                <ActivityHeatmap activityData={stats.activityData} />
               </CardContent>
             </Card>
           </motion.div>
@@ -397,17 +533,24 @@ export default function DashboardPage() {
               <CardContent sx={{ p: 3 }}>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
                   <Typography variant="h6" fontWeight={700}>Recent Submissions</Typography>
-                  <Button size="small"
+                  <Button
+                    size="small"
                     endIcon={<ArrowForwardOutlined sx={{ fontSize: 14 }} />}
-                    sx={{ fontSize: '0.8rem' }}>
+                    onClick={() => navigate('/problems')}
+                    sx={{ fontSize: '0.8rem' }}
+                  >
                     View all
                   </Button>
                 </Stack>
-                <RecentSubmissions submissions={mockSubmissions} navigate={navigate} />
+                <RecentSubmissionsList
+                  submissions={stats.recentSubmissions}
+                  navigate={navigate}
+                />
               </CardContent>
             </Card>
           </motion.div>
         </Grid>
+
       </Grid>
     </motion.div>
   );
