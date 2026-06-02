@@ -1,6 +1,14 @@
 
 export type Level = 'EASY' | 'MEDIUM' | 'HARD';
 export type Topic =
+    'DATABASE'
+  | 'MICROSERVICE'
+  | 'CACHE'
+  | 'QUEUE'
+  | 'GATEWAY'
+  | 'STORAGE'
+  | 'CDN'
+  | 'PROXY'
   | 'STORAGE_AND_RETRIEVAL'
   | 'SOCIAL_MEDIA'
   | 'INFRASTRUCTURE'
@@ -19,7 +27,7 @@ export interface Problem {
   title: string;
   description: string;
   level: Level;
-  topics: string[];         
+  topics: Topic[];         
   hint: string[];          
   companies?: string[];      
   tags?: string[];          

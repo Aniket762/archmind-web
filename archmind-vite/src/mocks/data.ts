@@ -8,9 +8,10 @@ import type {
 export const mockProblems: Problem[] = [
   {
     id: '1',
+    slug: 'design-a-url-shortener',
     title: 'Design a URL Shortener',
     level: 'EASY',
-    topic: 'STORAGE_AND_RETRIEVAL',
+    topics: ['STORAGE_AND_RETRIEVAL'],
     companies: ['Google', 'Amazon', 'Bitly'],
     tags: ['hashing', 'caching', 'databases'],
     solvedBy: 45200,
@@ -37,7 +38,7 @@ Design a URL shortening service like TinyURL that generates short aliases for lo
 - URL length: max 2048 characters
 - Short code: 7 alphanumeric characters (base62)
 - Default data retention: 5 years`,
-    hints: [
+    hint: [
       'Think about your encoding strategy — base62 counter vs MD5 hash — and the tradeoffs of each.',
       'Where will you store the mapping? Consider SQL (indexed) vs NoSQL (fast key-value) tradeoffs.',
       'How do you handle cache invalidation for viral URLs that suddenly get millions of hits?',
@@ -55,9 +56,10 @@ Design a URL shortening service like TinyURL that generates short aliases for lo
   },
   {
     id: '2',
+    slug: 'design-twitter',
     title: 'Design Twitter',
     level: 'HARD',
-    topic: 'SOCIAL_MEDIA',
+    topics: ['SOCIAL_MEDIA'],
     companies: ['Twitter/X', 'Meta', 'LinkedIn'],
     tags: ['news feed', 'fanout', 'social graph', 'caching'],
     solvedBy: 12400,
@@ -79,7 +81,7 @@ Design a simplified version of Twitter where users can post tweets, follow other
 - **Read:Write ratio**: ~1000:1 (very read-heavy)
 - **Consistency**: Eventual consistency acceptable for feed
 - **Latency**: Feed load < 200ms (P99)`,
-    hints: [
+    hint: [
       'Fanout-on-write vs fanout-on-read: what are the tradeoffs for different user classes?',
       'How do you handle "celebrity problem" — users with 100M followers?',
       'Consider a hybrid approach: push for regular users, pull for celebrities.',
@@ -96,9 +98,10 @@ Design a simplified version of Twitter where users can post tweets, follow other
   },
   {
     id: '3',
+    slug: 'design-a-distributed-cache',
     title: 'Design a Distributed Cache',
     level: 'HARD',
-    topic: 'INFRASTRUCTURE',
+    topics: ['INFRASTRUCTURE'],
     companies: ['Netflix', 'Uber', 'Stripe'],
     tags: ['caching', 'consistency', 'distributed systems'],
     solvedBy: 8200,
@@ -106,7 +109,7 @@ Design a simplified version of Twitter where users can post tweets, follow other
     premium: true,
     description: `## Overview
 Design a distributed in-memory caching system similar to Redis or Memcached that accelerates data retrieval across microservices.`,
-    hints: [
+    hint: [
       'Consistent hashing for key distribution — what happens when nodes join/leave?',
       'LRU vs LFU vs TTL-based eviction: when do you use each?',
       'How do you handle hot keys (cache stampede problem)?',
@@ -121,9 +124,10 @@ Design a distributed in-memory caching system similar to Redis or Memcached that
   },
   {
     id: '4',
+    slug: 'design-uber',
     title: 'Design Uber',
     level: 'HARD',
-    topic: 'REAL_TIME_SYSTEMS',
+    topics: ['REAL_TIME_SYSTEMS'],
     companies: ['Uber', 'Lyft', 'DoorDash'],
     tags: ['real-time', 'geospatial', 'matching', 'streaming'],
     solvedBy: 18700,
@@ -131,7 +135,7 @@ Design a distributed in-memory caching system similar to Redis or Memcached that
     premium: false,
     description: `## Overview
 Design the core backend for a ride-sharing application focusing on driver-rider matching, real-time location tracking, and dynamic pricing.`,
-    hints: [
+    hint: [
       'How do you efficiently query nearby drivers? Consider geohashing vs quadtrees.',
       'What matching algorithm balances rider wait time vs driver utilisation?',
       'How would you implement surge pricing in real time?',
@@ -146,9 +150,10 @@ Design the core backend for a ride-sharing application focusing on driver-rider 
   },
   {
     id: '5',
+    slug: 'design-a-notification-service',
     title: 'Design a Notification Service',
     level: 'MEDIUM',
-    topic: 'MESSAGING',
+    topics: ['MESSAGING'],
     companies: ['Amazon', 'Meta', 'Airbnb'],
     tags: ['push notifications', 'messaging', 'queues'],
     solvedBy: 22300,
@@ -156,7 +161,7 @@ Design the core backend for a ride-sharing application focusing on driver-rider 
     premium: false,
     description: `## Overview
 Design a notification service capable of sending millions of notifications per day across email, SMS, push, and in-app channels.`,
-    hints: [
+    hint: [
       'How do you guarantee at-least-once delivery without duplicates reaching the user?',
       'Priority queues: how do transactional vs marketing notifications differ?',
       'Rate limiting per user/channel to avoid notification fatigue.',
@@ -172,9 +177,10 @@ Design a notification service capable of sending millions of notifications per d
   },
   {
     id: '6',
+    slug: 'design-google-drive',
     title: 'Design Google Drive',
     level: 'MEDIUM',
-    topic: 'STORAGE_AND_RETRIEVAL',
+    topics: ['STORAGE_AND_RETRIEVAL'],
     companies: ['Google', 'Dropbox', 'Box'],
     tags: ['file storage', 'sync', 'collaboration', 'CDN'],
     solvedBy: 15800,
@@ -182,7 +188,7 @@ Design a notification service capable of sending millions of notifications per d
     premium: false,
     description: `## Overview
 Design a cloud file storage and sync service similar to Google Drive.`,
-    hints: [
+    hint: [
       'Chunking files into fixed-size blocks enables resumable uploads and efficient syncing.',
       'Content-based deduplication: how does it save storage?',
       'Conflict resolution when the same file is edited on two devices offline.',
@@ -246,14 +252,21 @@ export const mockFeedback: SubmissionFeedback = {
 // ─── Dashboard stats ──────────────────────────────────────────────────────────
 
 export const mockDashboardStats: DashboardStats = {
-  solved: 12,
-  total: 500,
-  streak: 7,
-  rank: 1842,
-  score: 2840,
-  easyCount:   { solved: 7, total: 120 },
-  mediumCount: { solved: 4, total: 230 },
-  hardCount:   { solved: 1, total: 150 },
+  totalSolved: 12,
+  totalProblems: 500,
+  currentStreak: 7,
+  globalRank: 1842,
+  totalScore: 2840,
+  easySolved: 7,
+  easyTotal: 120,
+  mediumSolved: 4,
+  mediumTotal: 230,
+  hardSolved: 1,
+  hardTotal: 150,
+  submissionTrend: [],
+  skillBreakdown: [],
+  activityData: [],
+  recentSubmissions: [],
 };
 
 export const mockSubmissionTrend: SubmissionTrendPoint[] = [

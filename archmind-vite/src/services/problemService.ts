@@ -18,15 +18,37 @@ export const problemService = {
     if (USE_MOCK) {
       await delay(400);
       let results = [...mockProblems];
-      if (filters.level)  results = results.filter((p) => p.level === filters.level);
-      if (filters.topic)  results = results.filter((p) => Array.isArray(p.topics) ? p.topics.includes(filters.topic as any) : p.topics === filters.topic);
+      const topic = filters.topic;
+      if (filters.level) results = results.filter((p) => p.level === filters.level);
+      if (topic) results = results.filter((p) => p.topics.includes(topic));
       if (filters.search) {
         const q = filters.search.toLowerCase();
         results = results.filter((p) => p.title.toLowerCase().includes(q));
       }
       return results;
     }
-    const { data } = await apiClient.get<Problem[]>(API.PROBLEMS.BASE, { params: filters });
+
+    const { data } = await apiClient.get<Problem[]>(API.PROBLEMS.BASE, {
+      params: {
+        level:   filters.level   || undefined,
+        topic:   filters.topic   || undefined,
+        keyword: filters.search  || undefined,  // ← matches @RequestParam name
+      },
+    });
+
+    return data;
+  },
+
+  getTopics: async (): Promise<Topic[]> => {
+    if (USE_MOCK) {
+      return [
+        'STORAGE_AND_RETRIEVAL',
+        'SOCIAL_MEDIA',
+        'INFRASTRUCTURE',
+      ];
+    }
+
+    const { data } = await apiClient.get<Topic[]>(API.PROBLEMS.ALL_TOPICS);
     return data;
   },
 
@@ -51,9 +73,7 @@ export const problemService = {
 
   /** GET /api/problems/topic/:topic */
   getByTopic: async (topic: Topic): Promise<Problem[]> => {
-
-
-    if (USE_MOCK) return mockProblems.filter((p) => Array.isArray(p.topics) ? p.topics.includes(topic as any) : p.topics === topic);
+    if (USE_MOCK) return mockProblems.filter((p) => p.topics.includes(topic));
     const { data } = await apiClient.get<Problem[]>(API.PROBLEMS.BY_TOPIC(topic));
     return data;
   },

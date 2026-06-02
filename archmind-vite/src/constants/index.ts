@@ -22,6 +22,14 @@ export const LEVEL_BG: Record<Level, string> = {
 };
 
 export const TOPICS: Topic[] = [
+   'DATABASE',
+    'MICROSERVICE',
+    'CACHE',
+    'QUEUE',
+    'GATEWAY',
+    'STORAGE',
+    'CDN',
+    'PROXY',
   'STORAGE_AND_RETRIEVAL',
   'SOCIAL_MEDIA',
   'INFRASTRUCTURE',
@@ -33,6 +41,14 @@ export const TOPICS: Topic[] = [
 ];
 
 export const TOPIC_LABEL: Record<Topic, string> = {
+  DATABASE: 'Database',
+  MICROSERVICE: 'Microservice',
+  CACHE: 'Cache',
+  QUEUE: 'Queue',
+  GATEWAY: 'Gateway',
+  STORAGE: 'Storage',
+  CDN: 'CDN',
+  PROXY: 'Proxy',
   STORAGE_AND_RETRIEVAL: 'Storage & Retrieval',
   SOCIAL_MEDIA: 'Social Media',
   INFRASTRUCTURE: 'Infrastructure',
@@ -66,6 +82,7 @@ export const API = {
     BY_LEVEL: (level: Level) => `/api/problems/getProblemsByLevel/${level}`,
     BY_TOPIC: (topic: Topic) => `/api/problems/getProblemsByTopic/${topic}`,
     SEARCH: '/api/problems/search',
+    ALL_TOPICS:  '/api/problems/getAllTopics',
   },
   SUBMISSIONS: {
   BASE: '/api/submission/createSubmission',           
