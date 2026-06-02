@@ -10,7 +10,7 @@ import { Logo } from '@/component/common/Logo';
 import { useAppSelector } from '@/hooks/redux';
 import { selectAuth } from '@/store';
 
-const FULL_WIDTH      = 220;
+const FULL_WIDTH      = 300;
 const COLLAPSED_WIDTH = 64;
 
 interface SidebarProps {
@@ -48,7 +48,7 @@ function NavLink({ item, collapsed, onClick }: { item: NavItem; collapsed: boole
           <ListItemText
             primary={item.label}
             primaryTypographyProps={{
-              fontSize: '0.875rem',
+              fontSize: '1rem',
               fontWeight: active ? 600 : 500,
               color: active ? 'primary.main' : 'text.primary',
             }}

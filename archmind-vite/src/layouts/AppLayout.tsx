@@ -17,7 +17,7 @@ export function AppLayout() {
       />
       <Box sx={{
         flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0,
-        ml: { md: collapsed ? '64px' : '220px' },
+        ml: { md: collapsed ? '10px' : '50px' }, mr: { md: collapsed ? '10px' : '50px' },
         transition: 'margin-left 0.25s ease',
         overflow: 'hidden',
       }}>

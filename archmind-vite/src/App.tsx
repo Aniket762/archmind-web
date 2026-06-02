@@ -18,7 +18,7 @@ export default function App() {
               color: '#F0F0F6',
               border: '1px solid rgba(255,255,255,0.08)',
               borderRadius: 10,
-              fontSize: '0.875rem',
+              fontSize: '0.900rem',
               fontFamily: "'Inter', sans-serif",
             },
             success: {
