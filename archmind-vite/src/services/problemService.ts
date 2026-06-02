@@ -10,11 +10,16 @@ export interface ProblemFilters {
   search?: string;
   level?: Level | '';
   topic?: Topic | '';
+  offset?: number;
+  limit?: number;
 }
 
 export const problemService = {
   /** GET /api/problems */
   getAll: async (filters: ProblemFilters = {}): Promise<Problem[]> => {
+    const limit = filters.limit || 12;
+    const offset = filters.offset || 0;
+
     if (USE_MOCK) {
       await delay(400);
       let results = [...mockProblems];
@@ -25,14 +30,17 @@ export const problemService = {
         const q = filters.search.toLowerCase();
         results = results.filter((p) => p.title.toLowerCase().includes(q));
       }
-      return results;
+      // Apply pagination
+      return results.slice(offset, offset + limit);
     }
 
     const { data } = await apiClient.get<Problem[]>(API.PROBLEMS.BASE, {
       params: {
         level:   filters.level   || undefined,
         topic:   filters.topic   || undefined,
-        keyword: filters.search  || undefined,  // ← matches @RequestParam name
+        keyword: filters.search  || undefined,
+        offset:  offset,
+        limit:   limit,
       },
     });
 
@@ -42,9 +50,22 @@ export const problemService = {
   getTopics: async (): Promise<Topic[]> => {
     if (USE_MOCK) {
       return [
-        'STORAGE_AND_RETRIEVAL',
-        'SOCIAL_MEDIA',
-        'INFRASTRUCTURE',
+       'DATABASE',
+    'MICROSERVICE',
+    'CACHE',
+    'QUEUE',
+    'GATEWAY',
+    'STORAGE',
+    'CDN',
+    'PROXY',
+  'STORAGE_AND_RETRIEVAL',
+  'SOCIAL_MEDIA',
+  'INFRASTRUCTURE',
+  'REAL_TIME_SYSTEMS',
+  'MESSAGING',
+  'DISTRIBUTED_SYSTEMS',
+  'API_DESIGN',
+  'MICROSERVICES',
       ];
     }
 

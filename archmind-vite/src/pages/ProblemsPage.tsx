@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   Box, Typography, Stack, Card, Button, Chip,
   Select, MenuItem, FormControl, InputLabel,
-  ToggleButtonGroup, ToggleButton, alpha,
+  ToggleButtonGroup, ToggleButton, alpha, CircularProgress,
   Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Paper, SelectChangeEvent,
+  TableHead, TableRow, Paper, SelectChangeEvent, Fade,
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
@@ -13,7 +13,7 @@ import {
   GridViewOutlined, ViewListOutlined,
 } from '@mui/icons-material';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
-import { fetchProblems, setFilter, clearFilters } from '@/store/slices/problemsSlice';
+import { fetchProblems, fetchMoreProblems, setFilter, clearFilters } from '@/store/slices/problemsSlice';
 import { selectProblems } from '@/store';
 import { problemService } from '@/services/problemService';
 import { DifficultyBadge } from '@/component/common/DifficultyBadge';
@@ -30,10 +30,11 @@ type ViewMode = 'list' | 'grid';
 export default function ProblemsPage() {
   const navigate   = useNavigate();
   const dispatch   = useAppDispatch();
-  const { list, loading, filters, total } = useAppSelector(selectProblems);
+  const { list, loading, loadingMore, filters, total, hasMore, offset } = useAppSelector(selectProblems);
   const [viewMode, setViewMode]   = useState<ViewMode>('list');
   const [topics,   setTopics]     = useState<Topic[]>([]);
   const [topicsLoading, setTopicsLoading] = useState(true);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Fetch real topics from DB on mount
   useEffect(() => {
@@ -52,6 +53,28 @@ export default function ProblemsPage() {
       search: filters.search || undefined,
     }));
   }, [dispatch, filters.level, filters.topic, filters.search]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!loadMoreRef.current || !hasMore || loadingMore || loading) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          dispatch(fetchMoreProblems({
+            level:  filters.level  || undefined,
+            topic:  filters.topic  || undefined,
+            search: filters.search || undefined,
+            offset: offset,
+          }));
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loading, dispatch, filters, offset]);
 
   const hasActiveFilters = !!(filters.level || filters.search || filters.topic);
 
@@ -153,20 +176,49 @@ export default function ProblemsPage() {
         </Stack>
       </Card>
 
-      {/* Content */}
-      {loading ? (
-        <TableSkeleton rows={8} />
-      ) : list.length === 0 ? (
-        <EmptyState
-          icon="🔍"
-          title="No problems found"
-          description="Try adjusting your filters or search query."
-          action={{ label: 'Clear Filters', onClick: () => dispatch(clearFilters()) }}
-        />
-      ) : viewMode === 'list' ? (
-        <ListView problems={list} navigate={navigate} formatTopic={formatTopic} />
-      ) : (
-        <GridView problems={list} navigate={navigate} formatTopic={formatTopic} />
+      {/* Content with fade transition */}
+      <Fade in={!loading} timeout={300}>
+        <Box>
+          {loading ? (
+            <TableSkeleton rows={8} />
+          ) : list.length === 0 ? (
+            <EmptyState
+              icon="🔍"
+              title="No problems found"
+              description="Try adjusting your filters or search query."
+              action={{ label: 'Clear Filters', onClick: () => dispatch(clearFilters()) }}
+            />
+          ) : viewMode === 'list' ? (
+            <ListView problems={list} navigate={navigate} formatTopic={formatTopic} />
+          ) : (
+            <GridView problems={list} navigate={navigate} formatTopic={formatTopic} />
+          )}
+        </Box>
+      </Fade>
+
+      {/* Load more sentinel */}
+      {hasMore && !loading && list.length > 0 && (
+        <Box
+          ref={loadMoreRef}
+          sx={{ display: 'flex', justifyContent: 'center', py: 4 }}
+        >
+          {loadingMore && (
+            <Stack alignItems="center" gap={1}>
+              <CircularProgress size={32} />
+              <Typography variant="body2" color="text.secondary">
+                Loading more...
+              </Typography>
+            </Stack>
+          )}
+        </Box>
+      )}
+
+      {!hasMore && list.length > 0 && (
+        <Box sx={{ textAlign: 'center', py: 4 }}>
+          <Typography variant="body2" color="text.secondary">
+            You've reached the end
+          </Typography>
+        </Box>
       )}
     </Box>
   );

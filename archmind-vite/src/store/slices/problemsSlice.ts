@@ -7,7 +7,19 @@ import type { ProblemsState, Problem } from '@/types';
 export const fetchProblems = createAsyncThunk(
   'problems/fetchAll',
   async (filters: ProblemFilters, { rejectWithValue }) => {
-    try { return await problemService.getAll(filters); }
+    try {
+      return await problemService.getAll({ ...filters, offset: 0, limit: 12 });
+    }
+    catch (err: unknown) { return rejectWithValue((err as Error).message); }
+  },
+);
+
+export const fetchMoreProblems = createAsyncThunk(
+  'problems/fetchMore',
+  async (filters: ProblemFilters & { offset: number }, { rejectWithValue }) => {
+    try {
+      return await problemService.getAll({ ...filters, offset: filters.offset, limit: 12 });
+    }
     catch (err: unknown) { return rejectWithValue((err as Error).message); }
   },
 );
@@ -51,9 +63,12 @@ const initialState: ProblemsState = {
   total:      0,
   current:    null,
   loading:    false,
+  loadingMore: false,
   submitting: false,
   error:      null,
   filters:    { level: '', topic: '', search: '', status: '' },
+  offset:     0,
+  hasMore:    true,
 };
 
 const problemsSlice = createSlice({
@@ -62,20 +77,39 @@ const problemsSlice = createSlice({
   reducers: {
     setFilter: (state, action: { payload: Partial<ProblemsState['filters']> }) => {
       state.filters = { ...state.filters, ...action.payload };
+      state.offset = 0;
+      state.hasMore = true;
     },
     clearFilters: (state) => {
       state.filters = { level: '', topic: '', search: '', status: '' };
+      state.offset = 0;
+      state.hasMore = true;
     },
     clearCurrent: (state) => { state.current = null; },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchProblems.pending,  (s) => { s.loading = true; s.error = null; })
+      .addCase(fetchProblems.pending,  (s) => { s.loading = true; s.error = null; s.offset = 0; })
       .addCase(fetchProblems.fulfilled,(s, { payload }) => {
-        s.loading = false; s.list = payload; s.total = payload.length;
+        s.loading = false; 
+        s.list = payload; 
+        s.total = payload.length;
+        s.offset = payload.length;
+        s.hasMore = payload.length >= 12;
       })
       .addCase(fetchProblems.rejected, (s, { payload }) => {
         s.loading = false; s.error = payload as string;
+      })
+
+      .addCase(fetchMoreProblems.pending,  (s) => { s.loadingMore = true; })
+      .addCase(fetchMoreProblems.fulfilled,(s, { payload }) => {
+        s.loadingMore = false;
+        s.list = [...s.list, ...payload];
+        s.offset += payload.length;
+        s.hasMore = payload.length >= 12;
+      })
+      .addCase(fetchMoreProblems.rejected, (s, { payload }) => {
+        s.loadingMore = false; s.error = payload as string;
       })
 
       .addCase(fetchProblemById.pending,  (s) => { s.loading = true; s.current = null; })

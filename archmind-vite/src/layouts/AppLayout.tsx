@@ -19,11 +19,19 @@ export function AppLayout() {
         flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0,
         ml: { md: collapsed ? '64px' : '220px' },
         transition: 'margin-left 0.25s ease',
+        overflow: 'hidden',
       }}>
         <TopNavbar onMenuClick={() => setMobileOpen(true)} />
         <Box
           component="main"
-          sx={{ flex: 1, px: { xs: 2, sm: 3, md: 4 }, py: { xs: 2.5, sm: 3 }, maxWidth: '100%' }}
+          sx={{ 
+            flex: 1, 
+            px: { xs: 2, sm: 3, md: 4 }, 
+            py: { xs: 2.5, sm: 3 }, 
+            maxWidth: '100%',
+            overflow: 'auto',
+            width: '100%',
+          }}
         >
           <Outlet />
         </Box>

@@ -221,9 +221,12 @@ export interface ProblemsState {
   total: number;
   current: Problem | null;
   loading: boolean;
+  loadingMore: boolean;
   submitting: boolean;
   error: string | null;
   filters: ProblemsFilter;
+  offset: number;
+  hasMore: boolean;
 }
 
 export interface ProblemsFilter {
