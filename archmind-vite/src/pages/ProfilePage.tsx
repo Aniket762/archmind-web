@@ -82,13 +82,13 @@ export default function ProfilePage() {
                       <Stack direction="row" spacing={0.75} alignItems="center">
                         <EmojiEventsOutlined sx={{ fontSize: 14, color: '#FFB347' }} />
                         <Typography variant="caption" color="text.secondary">
-                          Rank #{(user.rank ?? stats.rank).toLocaleString()}
+                          Rank #{(user.rank ?? stats.globalRank).toLocaleString()}
                         </Typography>
                       </Stack>
                       <Stack direction="row" spacing={0.75} alignItems="center">
                         <LocalFireDepartmentOutlined sx={{ fontSize: 14, color: '#FF6B6B' }} />
                         <Typography variant="caption" color="text.secondary">
-                          {user.streak ?? stats.streak}-day streak
+                          {user.streak ?? stats.currentStreak}-day streak
                         </Typography>
                       </Stack>
                     </Stack>
@@ -105,10 +105,10 @@ export default function ProfilePage() {
 
                 <Grid container spacing={3}>
                   {[
-                    { label: 'Problems Solved', value: stats.solved },
-                    { label: 'Total Score',     value: (user.totalScore ?? stats.score).toLocaleString() },
-                    { label: 'Global Rank',     value: `#${(user.rank ?? stats.rank).toLocaleString()}` },
-                    { label: 'Streak',          value: `${user.streak ?? stats.streak}d` },
+                    { label: 'Problems Solved', value: stats.totalSolved.toLocaleString() },
+                    { label: 'Total Score',     value: (user.totalScore ?? stats.totalScore).toLocaleString() },
+                    { label: 'Global Rank',     value: `#${(user.rank ?? stats.globalRank).toLocaleString()}` },
+                    { label: 'Streak',          value: `${user.streak ?? stats.currentStreak}d` },
                   ].map(({ label, value }) => (
                     <Grid item xs={6} sm={3} key={label}>
                       <Typography variant="body2" color="text.secondary" mb={0.25}>{label}</Typography>
@@ -133,20 +133,35 @@ export default function ProfilePage() {
                 <Typography variant="h6" fontWeight={700} mb={3}>Solved Problems</Typography>
                 <Box textAlign="center" mb={3}>
                   <ScoreCircle
-                    score={Math.round((stats.solved / stats.total) * 100)}
+                    score={Math.round((stats.totalSolved / stats.totalProblems) * 100)}
                     size={100}
                   />
-                  <Typography variant="h5" fontWeight={800} mt={1}>{stats.solved}</Typography>
+                  <Typography variant="h5" fontWeight={800} mt={1}>{stats.totalSolved.toLocaleString()}</Typography>
                   <Typography variant="caption" color="text.secondary">
-                    of {stats.total} total
+                    of {stats.totalProblems.toLocaleString()} total
                   </Typography>
                 </Box>
                 <Stack spacing={2.5}>
                   {[
-                    { label: 'Easy',   ...stats.easyCount,   color: '#51CF66' },
-                    { label: 'Medium', ...stats.mediumCount,  color: '#FFB347' },
-                    { label: 'Hard',   ...stats.hardCount,    color: '#FF6B6B' },
-                  ].map(({ label, solved, total, color }) => (
+  {
+    label: 'Easy',
+    solved: stats.easySolved,
+    total: stats.easyTotal,
+    color: '#51CF66',
+  },
+  {
+    label: 'Medium',
+    solved: stats.mediumSolved,
+    total: stats.mediumTotal,
+    color: '#FFB347',
+  },
+  {
+    label: 'Hard',
+    solved: stats.hardSolved,
+    total: stats.hardTotal,
+    color: '#FF6B6B',
+  },
+].map(({ label, solved, total, color }) => (
                     <Box key={label}>
                       <Stack direction="row" justifyContent="space-between" mb={0.75}>
                         <Typography variant="body2" fontWeight={500}>{label}</Typography>
